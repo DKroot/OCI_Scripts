@@ -36,23 +36,20 @@ DESCRIPTION
 
 ENVIRONMENT
 
-    OCI host instance IP: \`$OCI_INSTANCE_IP\`
-      e.g., \`10.0.1.xxx\`
-    OCI host instance OCID: \`$OCI_INSTANCE_OCID\`,
-      e.g., \`ocid1.instance.oc1.iad.xxxxxxxxx\`
-    OCI bastion OCID: \`$OCI_BASTION_OCID\`
-      e.g., \`ocid1.bastion.oc1.iad.xxxxxxxxx\`
-    OCI bastion region domain: \`$OCI_BASTION_REGION\`
-      e.g., \`us-ashburn-1\`
+    * OCI CLI is required to be installed.
 
-    \`jq\` is required to be installed.
+    * \`jq\` is required to be installed.
+
+    * Required environment variables:
+      * \`$OCI_INSTANCE_IP\`OCI host instance IP: , e.g., \`10.0.1.xx\`
+      * \`$OCI_INSTANCE_OCID\`, e.g., \`ocid1.instance.oc1.iad.xx\`
+      * \`$OCI_BASTION_OCID\`, e.g., \`ocid1.bastion.oc1.iad.xx\`
 
     Limitations for the \`host_user\` mode:
       1. This is the only OCI bastion session proxy jump host that is being configured in the SSH config.
-
       2. The private host IP is not yet configured in the SSH config before the first run of this script.
 
-v2.0.0                                       October 2022                                      Created by Dima Korobskiy
+v1.0.0                                       October 2022                                      Created by Dima Korobskiy
 Credits: George Chacko, Oracle
 HEREDOC
   exit 1
@@ -153,13 +150,19 @@ shift $((OPTIND - 1))
 # Process positional parameters
 readonly HOST_USER=$1
 
+if ! command -v oci >/dev/null; then
+  # shellcheck disable=SC2016
+  echo >&2 'Please install OCI CLI'
+  exit 1
+fi
+
 if ! command -v jq >/dev/null; then
   # shellcheck disable=SC2016
   echo >&2 'Please install `jq`'
   exit 1
 fi
 
-for required_env_var in OCI_INSTANCE_IP OCI_INSTANCE_OCID OCI_BASTION_OCID OCI_BASTION_REGION; do
+for required_env_var in OCI_INSTANCE_IP OCI_INSTANCE_OCID OCI_BASTION_OCID; do
   if [[ ! ${!required_env_var} ]]; then
     echo "Please define $required_env_var"
     exit 1
@@ -169,7 +172,6 @@ done
 # `${USER:-${USERNAME:-${LOGNAME}}}` might not be available inside Docker containers
 echo -e "\n# oci-bastion.sh: running under $(whoami)@${HOSTNAME} in ${PWD} #"
 
-readonly BASTION_HOST="host.bastion.${OCI_BASTION_REGION}.oci.oraclecloud.com"
 readonly MAX_TTL=$((3 * 60 * 60))
 readonly CHECK_INTERVAL_SEC=5
 readonly SSH_PUB_KEY=~/.ssh/id_rsa.pub
@@ -179,26 +181,22 @@ readonly AFTER_SESSION_CREATION_WAIT=5
 if [[ $port ]]; then
   echo -e "\nCreating a port forwarding tunnel for the port $port: this can take up to 20s to succeed ..."
   session_ocid=$(time oci bastion session create-port-forwarding --bastion-id "$OCI_BASTION_OCID" \
-    --target-resource-id "$OCI_INSTANCE_OCID" --target-private-ip "${OCI_INSTANCE_IP}" --target-port $port \
+    --target-resource-id "$OCI_INSTANCE_OCID" --target-private-ip "${OCI_INSTANCE_IP}" --target-port "$port" \
     --session-ttl $MAX_TTL --ssh-public-key-file $SSH_PUB_KEY --wait-for-state SUCCEEDED --wait-for-state FAILED \
     --wait-interval-seconds $CHECK_INTERVAL_SEC | jq --raw-output '.data.resources[0].identifier')
   echo "Bastion Port Forwarding Session OCID=$session_ocid"
-  oci bastion session get --session-id "$session_ocid"
-  echo
+  ssh_command=$(oci bastion session get --session-id "$session_ocid" | jq --raw-output '.data["ssh-metadata"].command')
+  # Result: `ssh -i <privateKey> -N -L <localPort>:{HOST_IP}:5432 -p 22 ocid1.bastionsession.xx@yy.oraclecloud.com`
+  # Remove the placeholder
+  ssh_command="${ssh_command/-i <privateKey>/}"
+  # Replace the placeholder
+  ssh_command="${ssh_command/<localPort>/"localhost:$port"}"
   sleep $AFTER_SESSION_CREATION_WAIT
 
   echo -e "\nLaunching an SSH tunnel"
   set -x
-
-  # `-N`: Do not execute a remote command. This is useful for just forwarding ports.
-  # `-L [bind_address:]port:host:hostport`: Specifies that connections to the given TCP port on the local (client) host
-  # are to be forwarded to the given host and port on the remote side. Port forwardings can also be specified in the
-  # configuration file. Only the superuser can forward privileged ports. IPv6 addresses can be specified by enclosing
-  # the address in square brackets. By default, the local port is bound in accordance with the `GatewayPorts` setting.
-  # However, an explicit `bind_address` may be used to bind the connection to a specific address. The bind_address of
-  # `localhost` indicates that the listening port be bound for local use only, while an empty address or `*' indcates
-  # that the port should be available from all interfaces.
-  ssh -N -L "localhost:$port:${OCI_INSTANCE_IP}:$port" "$session_ocid"@"$BASTION_HOST"
+  # This only works assuming there are no internal quotes in the command
+  $ssh_command
   set +x
   exit
 fi
@@ -212,11 +210,17 @@ if [[ $HOST_USER ]]; then
     --ssh-public-key-file $SSH_PUB_KEY --wait-for-state SUCCEEDED --wait-for-state FAILED \
     --wait-interval-seconds $CHECK_INTERVAL_SEC | jq --raw-output '.data.resources[0].identifier')
   echo "Bastion Session OCID=$session_ocid"
-  oci bastion session get --session-id "$session_ocid"
-  echo
+  ssh_command=$(oci bastion session get --session-id "$session_ocid" | jq --raw-output '.data["ssh-metadata"].command')
+  # Result: `ssh -i <privateKey> -o ProxyCommand=\"ssh -i <privateKey> -W %h:%p -p 22
+  #   ocid1.bastionsession.xx@yy.oraclecloud.com\" -p 22 {HOST_USER}@{HOST_IP}`
+  # Extract the bastion session SSH destination: the `ocid1.bastionsession.xx@yy.oraclecloud.com` part
+  # Remove the string head
+  bastion_session_dest=${ssh_command#*ocid1.bastionsession.}
+  # Remove the string tail and reconstruct `ocid1.bastionsession.xx@yy.oraclecloud.com`
+  bastion_session_dest="ocid1.bastionsession.${bastion_session_dest%%oraclecloud.com*}oraclecloud.com"
 
   upsert ~/.ssh/config "Host ${OCI_INSTANCE_IP}"
-  upsert ~/.ssh/config '  ProxyJump ocid1.bastionsession.' "  ProxyJump ${session_ocid}@${BASTION_HOST}"
+  upsert ~/.ssh/config '  ProxyJump ocid1.bastionsession.' "  ProxyJump ${bastion_session_dest}"
 
   if [[ $SKIP_SSH ]]; then
     exit 0
