@@ -45,11 +45,14 @@ ENVIRONMENT
       * \`$OCI_INSTANCE_OCID\`, e.g., \`ocid1.instance.oc1.iad.xx\`
       * \`$OCI_BASTION_OCID\`, e.g., \`ocid1.bastion.oc1.iad.xx\`
 
+    * One of the following SSH key pairs in \`~/.ssh/\`: \`id_rsa*\`, \`id_dsa*\`, \`id_ecdsa*\`, \`id_ed25519*\`, or
+    \`id_xmss*\`. If there are multiple keys the first one found from the list above will be used.
+
     Limitations for the \`host_user\` mode:
       1. This is the only OCI bastion session proxy jump host that is being configured in the SSH config.
       2. The private host IP is not yet configured in the SSH config before the first run of this script.
 
-v1.0.0                                       October 2022                                      Created by Dima Korobskiy
+v1.1.0                                       October 2022                                      Created by Dima Korobskiy
 Credits: George Chacko, Oracle
 HEREDOC
   exit 1
@@ -162,7 +165,7 @@ if ! command -v jq >/dev/null; then
   exit 1
 fi
 
-for required_env_var in OCI_INSTANCE_IP OCI_INSTANCE_OCID OCI_BASTION_OCID; do
+for required_env_var in 'OCI_INSTANCE_IP' 'OCI_INSTANCE_OCID' 'OCI_BASTION_OCID'; do
   if [[ ! ${!required_env_var} ]]; then
     echo "Please define $required_env_var"
     exit 1
@@ -174,12 +177,25 @@ echo -e "\n# oci-bastion.sh: running under $(whoami)@${HOSTNAME} in ${PWD} #"
 
 readonly MAX_TTL=$((3 * 60 * 60))
 readonly CHECK_INTERVAL_SEC=5
-readonly SSH_PUB_KEY=~/.ssh/id_rsa.pub
 # Intermittent `Permission denied (publickey)` errors might occur when trying to ssh immediately after session creation
-readonly AFTER_SESSION_CREATION_WAIT=5
+readonly AFTER_SESSION_CREATION_WAIT=10
+
+# Determine which keypair ssh uses by default.
+# The default key order as of OpenSSH 8.1p1m (see `ssh -v {destination}`)
+for key_pair in 'id_rsa' 'id_dsa' 'id_ecdsa' 'id_ed25519' 'id_xmss'; do
+  key_file=~/.ssh/$key_pair
+  if [[ -f $key_file ]]; then
+    readonly SSH_PUB_KEY=~/.ssh/$key_pair.pub
+    echo "Using $key_file and $SSH_PUB_KEY keys"
+    break
+  fi
+done
 
 if [[ $port ]]; then
   echo -e "\nCreating a port forwarding tunnel for the port $port: this can take up to 20s to succeed ..."
+  # `--session-ttl`: session duration in seconds (defaults to 30 minutes, maximum is 3 hours).
+  # `--wait-interval-seconds`: state check interval (defaults to 30 seconds).
+  # `--ssh-public-key-file` is required
   session_ocid=$(time oci bastion session create-port-forwarding --bastion-id "$OCI_BASTION_OCID" \
     --target-resource-id "$OCI_INSTANCE_OCID" --target-private-ip "${OCI_INSTANCE_IP}" --target-port "$port" \
     --session-ttl $MAX_TTL --ssh-public-key-file $SSH_PUB_KEY --wait-for-state SUCCEEDED --wait-for-state FAILED \
@@ -190,7 +206,7 @@ if [[ $port ]]; then
   # Remove the placeholder
   ssh_command="${ssh_command/-i <privateKey>/}"
   # Replace the placeholder
-  ssh_command="${ssh_command/<localPort>/"localhost:$port"}"
+  ssh_command="${ssh_command/<localPort>/localhost:$port}"
   sleep $AFTER_SESSION_CREATION_WAIT
 
   echo -e "\nLaunching an SSH tunnel"
@@ -205,6 +221,7 @@ if [[ $HOST_USER ]]; then
   echo -e "\nCreating a bastion session: this can take up to 1m:20s to succeed..."
   # `--session-ttl`: session duration in seconds (defaults to 30 minutes, maximum is 3 hours).
   # `--wait-interval-seconds`: state check interval (defaults to 30 seconds).
+  # `--ssh-public-key-file` is required
   session_ocid=$(time oci bastion session create-managed-ssh --bastion-id "$OCI_BASTION_OCID" \
     --target-resource-id "$OCI_INSTANCE_OCID" --target-os-username "$HOST_USER" --session-ttl $MAX_TTL \
     --ssh-public-key-file $SSH_PUB_KEY --wait-for-state SUCCEEDED --wait-for-state FAILED \
