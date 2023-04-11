@@ -41,18 +41,18 @@ ENVIRONMENT
     * \`jq\` is required to be installed.
 
     * Required environment variables:
-      * \`$OCI_INSTANCE_IP\`OCI host instance IP: , e.g., \`10.0.1.xx\`
-      * \`$OCI_INSTANCE_OCID\`, e.g., \`ocid1.instance.oc1.iad.xx\`
-      * \`$OCI_BASTION_OCID\`, e.g., \`ocid1.bastion.oc1.iad.xx\`
+      * \`OCI_INSTANCE\`, Internal FQDN or Private IP e.g., \`kharkiv.subxxx.main.oraclevcn.com\`
+      * \`OCI_INSTANCE_OCID\`, e.g., \`ocid1.instance.oc1.iad.xx\`
+      * \`OCI_BASTION_OCID\`, e.g., \`ocid1.bastion.oc1.iad.xx\`
 
-    * One of the following SSH key pairs in \`~/.ssh/\`: \`id_rsa*\`, \`id_dsa*\`, \`id_ecdsa*\`, \`id_ed25519*\`, or
-    \`id_xmss*\`. If there are multiple keys the first one found from the list above will be used.
+    * One of the following SSH public keys in \`~/.ssh/\`: \`id_rsa.pub\`, \`id_dsa.pub\`, \`id_ecdsa.pub\`,
+      \`id_ed25519.pub\`, or \`id_xmss.pub\`. If there are multiple keys the first one found in this order will be used.
 
     Limitations for the \`host_user\` mode:
-      1. This is the only OCI bastion session proxy jump host that is being configured in the SSH config.
-      2. The private host IP is not yet configured in the SSH config before the first run of this script.
+      1. There is only one OCI bastion session proxy jump host that is being configured in the SSH config.
+      2. The OCI host is not yet configured in the SSH config before the first run of this script.
 
-v1.1.0                                       October 2022                                      Created by Dima Korobskiy
+v1.2.0                                        April 2023                                       Created by Dima Korobskiy
 Credits: George Chacko, Oracle
 HEREDOC
   exit 1
@@ -74,7 +74,7 @@ HEREDOC
 #   upsert /etc/ssh/sshd_config 'IgnoreRhosts ' 'IgnoreRhosts yes'
 #   upsert /etc/ssh/sshd_config '#*Banner ' 'Banner /etc/issue.net'
 #   upsert /etc/logrotate.d/syslog ^ /var/log/cron
-#   upsert ~/.ssh/config "Host ${OCI_INSTANCE_IP}"
+#   upsert ~/.ssh/config "Host ${OCI_INSTANCE}"
 #
 # Author: Dima Korobskiy
 # Credits: https://superuser.com/questions/590630/sed-how-to-replace-line-if-found-or-append-to-end-of-file-if-not-found
@@ -165,7 +165,7 @@ if ! command -v jq >/dev/null; then
   exit 1
 fi
 
-for required_env_var in 'OCI_INSTANCE_IP' 'OCI_INSTANCE_OCID' 'OCI_BASTION_OCID'; do
+for required_env_var in 'OCI_INSTANCE' 'OCI_INSTANCE_OCID' 'OCI_BASTION_OCID'; do
   if [[ ! ${!required_env_var} ]]; then
     echo "Please define $required_env_var"
     exit 1
@@ -182,14 +182,19 @@ readonly AFTER_SESSION_CREATION_WAIT=10
 
 # Determine which keypair ssh uses by default.
 # The default key order as of OpenSSH 8.1p1m (see `ssh -v {destination}`)
-for key_pair in 'id_rsa' 'id_dsa' 'id_ecdsa' 'id_ed25519' 'id_xmss'; do
-  key_file=~/.ssh/$key_pair
-  if [[ -f $key_file ]]; then
-    readonly SSH_PUB_KEY=~/.ssh/$key_pair.pub
-    echo "Using $key_file and $SSH_PUB_KEY keys"
+for key_type in 'id_rsa' 'id_dsa' 'id_ecdsa' 'id_ed25519' 'id_xmss'; do
+  pub_key_file=~/.ssh/$key_type.pub
+  if [[ -f $pub_key_file ]]; then
+    readonly SSH_PUB_KEY=$pub_key_file
+    echo "Using $SSH_PUB_KEY as a public key"
     break
   fi
 done
+if [[ ! $SSH_PUB_KEY ]]; then
+  echo >&2 'No SSH public key is found'
+  exit 1
+fi
+
 
 if [[ $port ]]; then
   echo -e "\nCreating a port forwarding tunnel for the port $port: this can take up to 20s to succeed ..."
@@ -197,7 +202,7 @@ if [[ $port ]]; then
   # `--wait-interval-seconds`: state check interval (defaults to 30 seconds).
   # `--ssh-public-key-file` is required
   session_ocid=$(time oci bastion session create-port-forwarding --bastion-id "$OCI_BASTION_OCID" \
-    --target-resource-id "$OCI_INSTANCE_OCID" --target-private-ip "${OCI_INSTANCE_IP}" --target-port "$port" \
+    --target-resource-id "$OCI_INSTANCE_OCID" --target-private-ip "${OCI_INSTANCE}" --target-port "$port" \
     --session-ttl $MAX_TTL --ssh-public-key-file $SSH_PUB_KEY --wait-for-state SUCCEEDED --wait-for-state FAILED \
     --wait-interval-seconds $CHECK_INTERVAL_SEC | jq --raw-output '.data.resources[0].identifier')
   echo "Bastion Port Forwarding Session OCID=$session_ocid"
@@ -236,7 +241,7 @@ if [[ $HOST_USER ]]; then
   # Remove the string tail and reconstruct `ocid1.bastionsession.xx@yy.oraclecloud.com`
   bastion_session_dest="ocid1.bastionsession.${bastion_session_dest%%oraclecloud.com*}oraclecloud.com"
 
-  upsert ~/.ssh/config "Host ${OCI_INSTANCE_IP}"
+  upsert ~/.ssh/config "Host ${OCI_INSTANCE}"
   upsert ~/.ssh/config '  ProxyJump ocid1.bastionsession.' "  ProxyJump ${bastion_session_dest}"
 
   if [[ $SKIP_SSH ]]; then
@@ -246,6 +251,6 @@ if [[ $HOST_USER ]]; then
 
   echo -e "\nSSH to the target instance via a jump host"
   set -x
-  ssh "${HOST_USER}@${OCI_INSTANCE_IP}"
+  ssh "${HOST_USER}@${OCI_INSTANCE}"
   set +x
 fi
