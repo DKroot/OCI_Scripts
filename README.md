@@ -11,9 +11,10 @@ Configure and ssh or create a tunnel to an Oracle Cloud Infrastructure host via 
     * (macOS, Linux) Out-of-the-box 
     * (Windows) Install [WSL](https://learn.microsoft.com/en-us/windows/wsl/) or [Cygwin](https://www.cygwin.com/)
 1. `ssh` CLI client.
-    * Generate an SSH key pair if you don't have any. One of the following SSH key pairs in `~/.ssh/` must be used: 
-    `id_rsa*`, `id_dsa*`, `id_ecdsa*`, `id_ed25519*`, or `id_xmss*`. If multiple key pairs are present, the first one 
-    found from the list above will be used.    
+    * Generate an SSH key pair if you don't have any. One of the following SSH public keys in \`~/.ssh/\` is required: 
+    \`id_rsa.pub\`, \`id_dsa.pub\`, \`id_ecdsa.pub\`, \`id_ed25519.pub\`, or \`id_xmss.pub\`. If there are multiple keys
+    the first one found in this order will be used. The corresponding private key is usually also present there, but it
+    can be moved to a credential vault and SSH agent, e.g. [1Password](https://developer.1password.com/docs/ssh).     
 2. Install and configure [OCI CLI](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/cliinstall.htm).
 3. Install [`jq`](https://stedolan.github.io/jq/).
 4. Define the following environment variables. OCI menus below are as of October 2022. 
