@@ -167,7 +167,7 @@ fi
 
 for required_env_var in 'OCI_INSTANCE' 'OCI_INSTANCE_OCID' 'OCI_BASTION_OCID'; do
   if [[ ! ${!required_env_var} ]]; then
-    echo "Please define $required_env_var"
+    echo >&2 "Please define $required_env_var"
     exit 1
   fi
 done
