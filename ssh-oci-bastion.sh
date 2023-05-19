@@ -61,7 +61,7 @@ ENVIRONMENT
       ProxyJump
     \`\`\`
 
-v2.0.0                                         May 2023                                        Created by Dima Korobskiy
+v2.0.1                                         May 2023                                        Created by Dima Korobskiy
 Credits: George Chacko, Oracle
 HEREDOC
   exit 1
@@ -208,6 +208,7 @@ if [[ $HOST_USER ]]; then
   else
     # Append
     cat >>~/.ssh/config <<HEREDOC
+
 
 Host ${OCI_INSTANCE}
   ProxyJump ${bastion_session_dest}
