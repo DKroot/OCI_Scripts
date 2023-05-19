@@ -174,7 +174,7 @@ if [[ $port ]]; then
 fi
 
 if [[ $HOST_USER ]]; then
-  echo -e "\nCreating a bastion session: this can take up to 1m:20s to succeed..."
+  echo -e "\nCreating a bastion session: this can take up to 1m:30s to succeed..."
   # `--session-ttl`: session duration in seconds (defaults to 30 minutes, maximum is 3 hours).
   # `--wait-interval-seconds`: state check interval (defaults to 30 seconds).
   # `--ssh-public-key-file` is required
