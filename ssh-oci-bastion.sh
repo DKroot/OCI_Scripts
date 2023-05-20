@@ -61,7 +61,7 @@ ENVIRONMENT
       ProxyJump
     \`\`\`
 
-v2.0.1                                         May 2023                                        Created by Dima Korobskiy
+v2.0.2                                         May 2023                                        Created by Dima Korobskiy
 Credits: George Chacko, Oracle
 HEREDOC
   exit 1
@@ -71,19 +71,19 @@ HEREDOC
 # If a character is followed by a colon, the option is expected to have an argument
 while getopts np:o:h OPT; do
   case "$OPT" in
-    n)
-      readonly SKIP_SSH=true
-      ;;
-    p)
-      port="$OPTARG"
-      #ports+=("$OPTARG")
-      ;;
-    o)
-      readonly PROFILE_OPT="--profile $OPTARG"
-      ;;
-    *) # -h or `?`: an unknown option
-      usage
-      ;;
+  n)
+    readonly SKIP_SSH=true
+    ;;
+  p)
+    port="$OPTARG"
+    #ports+=("$OPTARG")
+    ;;
+  o)
+    readonly PROFILE_OPT="--profile $OPTARG"
+    ;;
+  *) # -h or `?`: an unknown option
+    usage
+    ;;
   esac
 done
 echo -e "\n# \`$0 $*\`: run by \`${USER:-${USERNAME:-${LOGNAME:-UID #$UID}}}@${HOSTNAME}\`, in \`${PWD}\` #\n"
@@ -110,7 +110,7 @@ if ! command -v pcregrep >/dev/null; then
   exit 1
 fi
 
-if ! command -v perl > /dev/null; then
+if ! command -v perl >/dev/null; then
   echo "Please install Perl"
   exit 1
 fi
@@ -142,7 +142,6 @@ if [[ ! $SSH_PUB_KEY ]]; then
   exit 1
 fi
 
-
 if [[ $port ]]; then
   echo -e "\nCreating a port forwarding tunnel for the port $port: this can take up to 20s to succeed ..."
   # `--session-ttl`: session duration in seconds (defaults to 30 minutes, maximum is 3 hours).
@@ -156,8 +155,8 @@ if [[ $port ]]; then
   echo "Bastion Port Forwarding Session OCID=$session_ocid"
 
   # shellcheck disable=SC2086 # $PROFILE_OPT is a two-word CLI option
-  ssh_command=$(oci bastion session get $PROFILE_OPT --session-id "$session_ocid" \
-    | jq --raw-output '.data["ssh-metadata"].command')
+  ssh_command=$(oci bastion session get $PROFILE_OPT --session-id "$session_ocid" |
+    jq --raw-output '.data["ssh-metadata"].command')
   # Result: `ssh -i <privateKey> -N -L <localPort>:{HOST_IP}:5432 -p 22 ocid1.bastionsession.xx@yy.oraclecloud.com`
   # Remove the placeholder
   ssh_command="${ssh_command/-i <privateKey>/}"
@@ -186,8 +185,8 @@ if [[ $HOST_USER ]]; then
   echo "Bastion Session OCID=$session_ocid"
 
   # shellcheck disable=SC2086 # $PROFILE_OPT is a two-word CLI option
-  ssh_command=$(oci bastion session get $PROFILE_OPT --session-id "$session_ocid" \
-    | jq --raw-output '.data["ssh-metadata"].command')
+  ssh_command=$(oci bastion session get $PROFILE_OPT --session-id "$session_ocid" |
+    jq --raw-output '.data["ssh-metadata"].command')
   # Result: `ssh -i <privateKey> -o ProxyCommand=\"ssh -i <privateKey> -W %h:%p -p 22
   #   ocid1.bastionsession.xx@yy.oraclecloud.com\" -p 22 {HOST_USER}@{HOST_IP}`
   # Extract the bastion session SSH destination: the `ocid1.bastionsession.xx@yy.oraclecloud.com` part
@@ -203,8 +202,10 @@ if [[ $HOST_USER ]]; then
     # -i input edited in-place
     # -p iterate over filename arguments
     # -0 use null as record separator
+    # Don't combine these options: the combination might not work
     # `@host` in the bastion session has to be escaped
-    perl -i -p -0 -e "s/(Host ${OCI_INSTANCE}.*?)ProxyJump.*/\1ProxyJump ${bastion_session_dest//@/\\@}/s" ~/.ssh/config
+    perl -i -p -0 -e "s/(Host ${OCI_INSTANCE}.*?)ProxyJump.*?\n/\1ProxyJump ${bastion_session_dest//@/\\@}\n/s" \
+      ~/.ssh/config
   else
     # Append
     cat >>~/.ssh/config <<HEREDOC
