@@ -19,9 +19,10 @@ Configure and ssh or create a tunnel to an Oracle Cloud Infrastructure host via 
 4. Install [`jq`](https://stedolan.github.io/jq/).
 5. Install [`PCRE`](https://www.pcre.org/).
 6. Define the following environment variables. OCI menus below are as of October 2022. 
-    1. `OCI_INSTANCE`: OCI host Internal FQDN or Private IP. See `Compute` > `Instances` > {host} > `Primary VNIC`.
-    2. `OCI_INSTANCE_OCID`. See `Compute` > `Instances` > {host} > `General information` > `OCID`
-    3. `OCI_BASTION_OCID`. See `Identity & Security` > `Bastion` > {bastion} > `Bastion information` > `OCID`
+    1. `OCI_INSTANCE_OCID`. See `Compute` > `Instances` > {host} > `General information` > `OCID`
+    2. `OCI_BASTION_OCID`. See `Identity & Security` > `Bastion` > {bastion} > `Bastion information` > `OCID`
+    3. For `host_user` SSH sessions only: `OCI_INSTANCE`: OCI host Internal FQDN or Private IP. See `Compute` >
+       `Instances` > {host} > `Primary VNIC`.
     * If you're working with the single OCI host, setting them globally in your environment will work well.
     * If you're working with multiple hosts, you can pass these vars on-the-fly: see the `Usage Examples` section.
 
@@ -29,7 +30,8 @@ Configure and ssh or create a tunnel to an Oracle Cloud Infrastructure host via 
 
 * Create a bastion session and ssh as `taras` server user using the system environment vars: `ssh-oci-bastion.sh taras`
 * Create a bastion session and ssh: 
-  `OCI_INSTANCE=10.xx OCI_INSTANCE_OCID=ocid1.instance.xx OCI_BASTION_OCID=ocid1.bastion.xx ssh-oci-bastion.sh taras`
-* Create a bastion port-forwarding session and launch the tunnel for the port 1234: `ssh-oci-bastion.sh -p 1234`
+  `OCI_INSTANCE_OCID=ocid1.instance.xx OCI_BASTION_OCID=ocid1.bastion.xx OCI_INSTANCE=10.xx ssh-oci-bastion.sh taras`
+* Create a bastion port-forwarding session and launch the tunnel for the port 1234:
+  `OCI_INSTANCE_OCID=ocid1.instance.xx OCI_BASTION_OCID=ocid1.bastion.xx ssh-oci-bastion.sh -p 1234`
 * Create a bastion session and ssh using the `ADMIN` OCI client profile: `ssh-oci-bastion.sh -o ADMIN taras`
 
