@@ -62,7 +62,7 @@ ENVIRONMENT
       ProxyJump
     \`\`\`
 
-v2.1.0                                         May 2023                                        Created by Dima Korobskiy
+v2.1.1                                         May 2023                                        Created by Dima Korobskiy
 Credits: George Chacko, Oracle
 HEREDOC
   exit 1
@@ -125,8 +125,7 @@ done
 
 readonly MAX_TTL=$((3 * 60 * 60))
 readonly CHECK_INTERVAL_SEC=5
-# Intermittent `Permission denied (publickey)` errors might occur when trying to ssh immediately after session creation
-readonly AFTER_SESSION_CREATION_WAIT=5
+readonly AFTER_SESSION_CREATION_WAIT=6
 
 # Determine which keypair ssh uses by default.
 # The default key order as of OpenSSH 8.1p1m (see `ssh -v {destination}`)
@@ -164,6 +163,7 @@ if [[ $port ]]; then
   ssh_command="${ssh_command/-i <privateKey>/}"
   # Replace the placeholder
   ssh_command="${ssh_command/<localPort>/localhost:$port}"
+  # Preventing intermittent `Permission denied (publickey)` errors when trying to ssh immediately after session creation
   sleep $AFTER_SESSION_CREATION_WAIT
 
   echo -e "\n[$(date +'%T %Z')] Opening an SSH tunnel. Interrupt (Ctrl+C) the process to close it."
@@ -221,6 +221,7 @@ HEREDOC
   if [[ $SKIP_SSH ]]; then
     exit 0
   fi
+  # Preventing intermittent `Permission denied (publickey)` errors when trying to ssh immediately after session creation
   sleep $AFTER_SESSION_CREATION_WAIT
 
   echo -e "\n[$(date +'%T %Z')] SSH to the target instance via a jump host"
