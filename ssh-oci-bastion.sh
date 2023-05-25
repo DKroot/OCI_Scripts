@@ -144,7 +144,7 @@ if [[ ! $SSH_PUB_KEY ]]; then
 fi
 
 if [[ $port ]]; then
-  echo -e "\nCreating a port forwarding tunnel for the port $port: this can take 15-25s ..."
+  echo -e "\nCreating a port forwarding tunnel for the port $port: this can take ≈ 10-20s ..."
   # `--session-ttl`: session duration in seconds (defaults to 30 minutes, maximum is 3 hours).
   # `--wait-interval-seconds`: state check interval (defaults to 30 seconds).
   # `--ssh-public-key-file` is required
@@ -154,7 +154,7 @@ if [[ $port ]]; then
     --target-resource-id "$OCI_INSTANCE_OCID" --target-port "$port" \
     --session-ttl $MAX_TTL --ssh-public-key-file $SSH_PUB_KEY --wait-for-state SUCCEEDED --wait-for-state FAILED \
     --wait-interval-seconds $CHECK_INTERVAL_SEC | jq --raw-output '.data.resources[0].identifier')
-  echo "Bastion Port Forwarding Session OCID=$session_ocid"
+  echo "Created the bastion port forwarding session: $session_ocid"
 
   # shellcheck disable=SC2086 # $PROFILE_OPT is a two-word CLI option
   ssh_command=$(oci bastion session get $PROFILE_OPT --session-id "$session_ocid" |
@@ -166,7 +166,7 @@ if [[ $port ]]; then
   ssh_command="${ssh_command/<localPort>/localhost:$port}"
   sleep $AFTER_SESSION_CREATION_WAIT
 
-  echo -e "\n$(date +'%T %Z') Opening an SSH tunnel. Interrupt (Ctrl+C) the process to close it."
+  echo -e "\n[$(date +'%T %Z')] Opening an SSH tunnel. Interrupt (Ctrl+C) the process to close it."
   set -x
   # This only works assuming there are no internal quotes in the command
   $ssh_command
@@ -175,7 +175,7 @@ if [[ $port ]]; then
 fi
 
 if [[ $HOST_USER ]]; then
-  echo -e "\nCreating a bastion session: this can take 1m:15s-1m:30s ..."
+  echo -e "\nCreating a bastion session: this can take ≈ 1m:13s-1m:30s ..."
   # `--session-ttl`: session duration in seconds (defaults to 30 minutes, maximum is 3 hours).
   # `--wait-interval-seconds`: state check interval (defaults to 30 seconds).
   # `--ssh-public-key-file` is required
@@ -184,7 +184,7 @@ if [[ $HOST_USER ]]; then
     --target-resource-id "$OCI_INSTANCE_OCID" --target-os-username "$HOST_USER" --session-ttl $MAX_TTL \
     --ssh-public-key-file $SSH_PUB_KEY --wait-for-state SUCCEEDED --wait-for-state FAILED \
     --wait-interval-seconds $CHECK_INTERVAL_SEC | jq --raw-output '.data.resources[0].identifier')
-  echo "Bastion Session OCID=$session_ocid"
+  echo "Created the bastion session: $session_ocid"
 
   # shellcheck disable=SC2086 # $PROFILE_OPT is a two-word CLI option
   ssh_command=$(oci bastion session get $PROFILE_OPT --session-id "$session_ocid" |
@@ -223,7 +223,7 @@ HEREDOC
   fi
   sleep $AFTER_SESSION_CREATION_WAIT
 
-  echo -e "\n$(date +'%T %Z') SSH to the target instance via a jump host"
+  echo -e "\n[$(date +'%T %Z')] SSH to the target instance via a jump host"
   set -x
   ssh "${HOST_USER}@${OCI_INSTANCE}"
   set +x
