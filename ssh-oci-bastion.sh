@@ -62,7 +62,7 @@ ENVIRONMENT
       ProxyJump
     \`\`\`
 
-v2.0.3                                         May 2023                                        Created by Dima Korobskiy
+v2.1.0                                         May 2023                                        Created by Dima Korobskiy
 Credits: George Chacko, Oracle
 HEREDOC
   exit 1
@@ -126,7 +126,7 @@ done
 readonly MAX_TTL=$((3 * 60 * 60))
 readonly CHECK_INTERVAL_SEC=5
 # Intermittent `Permission denied (publickey)` errors might occur when trying to ssh immediately after session creation
-readonly AFTER_SESSION_CREATION_WAIT=10
+readonly AFTER_SESSION_CREATION_WAIT=5
 
 # Determine which keypair ssh uses by default.
 # The default key order as of OpenSSH 8.1p1m (see `ssh -v {destination}`)
@@ -144,7 +144,7 @@ if [[ ! $SSH_PUB_KEY ]]; then
 fi
 
 if [[ $port ]]; then
-  echo -e "\nCreating a port forwarding tunnel for the port $port: this can take up to 20s to succeed ..."
+  echo -e "\nCreating a port forwarding tunnel for the port $port: this can take 15-25s ..."
   # `--session-ttl`: session duration in seconds (defaults to 30 minutes, maximum is 3 hours).
   # `--wait-interval-seconds`: state check interval (defaults to 30 seconds).
   # `--ssh-public-key-file` is required
@@ -166,7 +166,7 @@ if [[ $port ]]; then
   ssh_command="${ssh_command/<localPort>/localhost:$port}"
   sleep $AFTER_SESSION_CREATION_WAIT
 
-  echo -e "\nLaunching an SSH tunnel"
+  echo -e "\n$(date +'%T %Z') Opening an SSH tunnel. Interrupt (Ctrl+C) the process to close it."
   set -x
   # This only works assuming there are no internal quotes in the command
   $ssh_command
@@ -175,7 +175,7 @@ if [[ $port ]]; then
 fi
 
 if [[ $HOST_USER ]]; then
-  echo -e "\nCreating a bastion session: this can take up to 1m:30s to succeed..."
+  echo -e "\nCreating a bastion session: this can take 1m:15s-1m:30s ..."
   # `--session-ttl`: session duration in seconds (defaults to 30 minutes, maximum is 3 hours).
   # `--wait-interval-seconds`: state check interval (defaults to 30 seconds).
   # `--ssh-public-key-file` is required
@@ -223,7 +223,7 @@ HEREDOC
   fi
   sleep $AFTER_SESSION_CREATION_WAIT
 
-  echo -e "\nSSH to the target instance via a jump host"
+  echo -e "\n$(date +'%T %Z') SSH to the target instance via a jump host"
   set -x
   ssh "${HOST_USER}@${OCI_INSTANCE}"
   set +x
