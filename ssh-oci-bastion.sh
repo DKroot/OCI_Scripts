@@ -2,6 +2,8 @@
 set -e
 set -o pipefail
 
+readonly VER=2.1.2
+
 # Remove the longest `*/` prefix
 readonly SCRIPT_NAME_WITH_EXT="${0##*/}"
 
@@ -62,8 +64,7 @@ ENVIRONMENT
       ProxyJump
     \`\`\`
 
-v2.1.1                                         May 2023                                        Created by Dima Korobskiy
-Credits: George Chacko, Oracle
+v$VER
 HEREDOC
   exit 1
 }
@@ -87,7 +88,7 @@ while getopts np:o:h OPT; do
     ;;
   esac
 done
-echo -e "\n# \`$0 $*\`: run by \`${USER:-${USERNAME:-${LOGNAME:-UID #$UID}}}@${HOSTNAME}\`, in \`${PWD}\` #\n"
+echo -e "\n# \`$0${*+ }$*\` v$VER: run by \`${USER:-${USERNAME:-${LOGNAME:-UID #$UID}}}@${HOSTNAME}\` in \`${PWD}\` #\n"
 shift $((OPTIND - 1))
 
 # Process positional parameters
@@ -125,7 +126,7 @@ done
 
 readonly MAX_TTL=$((3 * 60 * 60))
 readonly CHECK_INTERVAL_SEC=5
-readonly AFTER_SESSION_CREATION_WAIT=6
+readonly AFTER_SESSION_CREATION_WAIT=7
 
 # Determine which keypair ssh uses by default.
 # The default key order as of OpenSSH 8.1p1m (see `ssh -v {destination}`)
@@ -163,6 +164,8 @@ if [[ $port ]]; then
   ssh_command="${ssh_command/-i <privateKey>/}"
   # Replace the placeholder
   ssh_command="${ssh_command/<localPort>/localhost:$port}"
+
+  echo "Waiting $AFTER_SESSION_CREATION_WAIT seconds..."
   # Preventing intermittent `Permission denied (publickey)` errors when trying to ssh immediately after session creation
   sleep $AFTER_SESSION_CREATION_WAIT
 
@@ -221,6 +224,8 @@ HEREDOC
   if [[ $SKIP_SSH ]]; then
     exit 0
   fi
+
+  echo "Waiting $AFTER_SESSION_CREATION_WAIT seconds..."
   # Preventing intermittent `Permission denied (publickey)` errors when trying to ssh immediately after session creation
   sleep $AFTER_SESSION_CREATION_WAIT
 
