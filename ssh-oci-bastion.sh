@@ -2,7 +2,7 @@
 set -e
 set -o pipefail
 
-readonly VER=2.1.2
+readonly VER=2.1.3
 
 # Remove the longest `*/` prefix
 readonly SCRIPT_NAME_WITH_EXT="${0##*/}"
@@ -150,10 +150,14 @@ if [[ $port ]]; then
   # `--ssh-public-key-file` is required
   # `--target-private-ip` "${OCI_INSTANCE}"
   # shellcheck disable=SC2086 # $PROFILE_OPT is a two-word CLI option
-  session_ocid=$(time oci bastion session create-port-forwarding $PROFILE_OPT --bastion-id "$OCI_BASTION_OCID" \
-    --target-resource-id "$OCI_INSTANCE_OCID" --target-port "$port" \
-    --session-ttl $MAX_TTL --ssh-public-key-file $SSH_PUB_KEY --wait-for-state SUCCEEDED --wait-for-state FAILED \
-    --wait-interval-seconds $CHECK_INTERVAL_SEC | jq --raw-output '.data.resources[0].identifier')
+  session_ocid=$(time ( # `time` prints to stderr so it does not interfere with the pipe
+      oci bastion session create-port-forwarding $PROFILE_OPT --bastion-id "$OCI_BASTION_OCID" \
+          --target-resource-id "$OCI_INSTANCE_OCID" --target-port "$port" --session-ttl $MAX_TTL \
+          --ssh-public-key-file $SSH_PUB_KEY --wait-for-state SUCCEEDED --wait-for-state FAILED \
+          --wait-interval-seconds $CHECK_INTERVAL_SEC | jq --raw-output '.data.resources[0].identifier';
+      >&2 printf "It took:"
+    )
+  )
   echo "Created the bastion port forwarding session: $session_ocid"
 
   # shellcheck disable=SC2086 # $PROFILE_OPT is a two-word CLI option
@@ -183,10 +187,14 @@ if [[ $HOST_USER ]]; then
   # `--wait-interval-seconds`: state check interval (defaults to 30 seconds).
   # `--ssh-public-key-file` is required
   # shellcheck disable=SC2086 # $PROFILE_OPT is a two-word CLI option
-  session_ocid=$(time oci bastion session create-managed-ssh $PROFILE_OPT --bastion-id "$OCI_BASTION_OCID" \
-    --target-resource-id "$OCI_INSTANCE_OCID" --target-os-username "$HOST_USER" --session-ttl $MAX_TTL \
-    --ssh-public-key-file $SSH_PUB_KEY --wait-for-state SUCCEEDED --wait-for-state FAILED \
-    --wait-interval-seconds $CHECK_INTERVAL_SEC | jq --raw-output '.data.resources[0].identifier')
+  session_ocid=$(time ( # `time` prints to stderr so it does not interfere with the pipe
+      oci bastion session create-managed-ssh $PROFILE_OPT --bastion-id "$OCI_BASTION_OCID" \
+          --target-resource-id "$OCI_INSTANCE_OCID" --target-os-username "$HOST_USER" --session-ttl $MAX_TTL \
+          --ssh-public-key-file $SSH_PUB_KEY --wait-for-state SUCCEEDED --wait-for-state FAILED \
+          --wait-interval-seconds $CHECK_INTERVAL_SEC | jq --raw-output '.data.resources[0].identifier';
+      >&2 printf "It took:"
+    )
+  )
   echo "Created the bastion session: $session_ocid"
 
   # shellcheck disable=SC2086 # $PROFILE_OPT is a two-word CLI option
