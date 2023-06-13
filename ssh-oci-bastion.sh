@@ -2,7 +2,7 @@
 set -e
 set -o pipefail
 
-readonly VER=2.1.3
+readonly VER=2.1.4
 
 # Remove the longest `*/` prefix
 readonly SCRIPT_NAME_WITH_EXT="${0##*/}"
@@ -88,7 +88,7 @@ while getopts np:o:h OPT; do
     ;;
   esac
 done
-echo -e "\n# \`$0${*+ }$*\` v$VER: run by \`${USER:-${USERNAME:-${LOGNAME:-UID #$UID}}}@${HOSTNAME}\` in \`${PWD}\` #\n"
+echo -e "\n[$(date +'%T %Z') v$VER] ${USER:-${USERNAME:-${LOGNAME:-UID #$UID}}}@${HOSTNAME} ${PWD}> $0${*+ }$*\n"
 shift $((OPTIND - 1))
 
 # Process positional parameters
