@@ -2,7 +2,7 @@
 set -e
 set -o pipefail
 
-readonly VER=2.1.4
+readonly VER=2.1.5
 
 # Remove the longest `*/` prefix
 readonly SCRIPT_NAME_WITH_EXT="${0##*/}"
@@ -144,7 +144,7 @@ if [[ ! $SSH_PUB_KEY ]]; then
 fi
 
 if [[ $port ]]; then
-  echo -e "\nCreating a port forwarding tunnel for the port $port: this can take ≈ 10-20s ..."
+  echo -e "\nCreating a port forwarding tunnel for the port $port: this can take ≈ 10-21s ..."
   # `--session-ttl`: session duration in seconds (defaults to 30 minutes, maximum is 3 hours).
   # `--wait-interval-seconds`: state check interval (defaults to 30 seconds).
   # `--ssh-public-key-file` is required
