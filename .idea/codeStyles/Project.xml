@@ -7,11 +7,12 @@
       </value>
     </option>
     <option name="FORMATTER_TAGS_ENABLED" value="true" />
-    <DB2CodeStyleSettings version="2">
-      <option name="ALIAS_CASE" value="4" />
-      <option name="KEYWORD_CASE" value="0" />
-      <option name="TYPE_CASE" value="3" />
+    <DB2CodeStyleSettings version="6">
+      <option name="USE_GENERAL_STYLE" value="false" />
       <option name="IDENTIFIER_CASE" value="1" />
+      <option name="TYPE_CASE" value="3" />
+      <option name="CUSTOM_TYPE_CASE" value="3" />
+      <option name="ALIAS_CASE" value="4" />
       <option name="QUOTE_IDENTIFIER" value="1" />
       <option name="QUERY_IN_ONE_STRING" value="1" />
       <option name="QUERY_ALIGN_LINE_COMMENTS" value="false" />
@@ -56,11 +57,12 @@
       <option name="INDEX_NAME_TEMPLATE" value="{table}_{columns}_{unique?uk:i}" />
       <option name="FOREIGN_KEY_NAME_TEMPLATE" value="{table}_{columns}_fk" />
     </DB2CodeStyleSettings>
-    <DerbyCodeStyleSettings version="2">
-      <option name="ALIAS_CASE" value="4" />
-      <option name="KEYWORD_CASE" value="0" />
-      <option name="TYPE_CASE" value="3" />
+    <DerbyCodeStyleSettings version="6">
+      <option name="USE_GENERAL_STYLE" value="false" />
       <option name="IDENTIFIER_CASE" value="1" />
+      <option name="TYPE_CASE" value="3" />
+      <option name="CUSTOM_TYPE_CASE" value="3" />
+      <option name="ALIAS_CASE" value="4" />
       <option name="QUOTE_IDENTIFIER" value="1" />
       <option name="QUERY_IN_ONE_STRING" value="1" />
       <option name="QUERY_ALIGN_LINE_COMMENTS" value="false" />
@@ -105,11 +107,12 @@
       <option name="INDEX_NAME_TEMPLATE" value="{table}_{columns}_{unique?uk:i}" />
       <option name="FOREIGN_KEY_NAME_TEMPLATE" value="{table}_{columns}_fk" />
     </DerbyCodeStyleSettings>
-    <H2CodeStyleSettings version="2">
-      <option name="ALIAS_CASE" value="4" />
-      <option name="KEYWORD_CASE" value="0" />
-      <option name="TYPE_CASE" value="3" />
+    <H2CodeStyleSettings version="6">
+      <option name="USE_GENERAL_STYLE" value="false" />
       <option name="IDENTIFIER_CASE" value="1" />
+      <option name="TYPE_CASE" value="3" />
+      <option name="CUSTOM_TYPE_CASE" value="3" />
+      <option name="ALIAS_CASE" value="4" />
       <option name="QUOTE_IDENTIFIER" value="1" />
       <option name="QUERY_IN_ONE_STRING" value="1" />
       <option name="QUERY_ALIGN_LINE_COMMENTS" value="false" />
@@ -148,11 +151,12 @@
       <option name="INDEX_NAME_TEMPLATE" value="{table}_{columns}_{unique?uk:i}" />
       <option name="FOREIGN_KEY_NAME_TEMPLATE" value="{table}_{columns}_fk" />
     </H2CodeStyleSettings>
-    <HSQLCodeStyleSettings version="2">
-      <option name="ALIAS_CASE" value="4" />
-      <option name="KEYWORD_CASE" value="0" />
-      <option name="TYPE_CASE" value="3" />
+    <HSQLCodeStyleSettings version="6">
+      <option name="USE_GENERAL_STYLE" value="false" />
       <option name="IDENTIFIER_CASE" value="1" />
+      <option name="TYPE_CASE" value="3" />
+      <option name="CUSTOM_TYPE_CASE" value="3" />
+      <option name="ALIAS_CASE" value="4" />
       <option name="QUOTE_IDENTIFIER" value="1" />
       <option name="QUERY_IN_ONE_STRING" value="1" />
       <option name="QUERY_ALIGN_LINE_COMMENTS" value="false" />
@@ -191,11 +195,12 @@
       <option name="INDEX_NAME_TEMPLATE" value="{table}_{columns}_{unique?uk:i}" />
       <option name="FOREIGN_KEY_NAME_TEMPLATE" value="{table}_{columns}_fk" />
     </HSQLCodeStyleSettings>
-    <MSSQLCodeStyleSettings version="2">
-      <option name="ALIAS_CASE" value="4" />
-      <option name="KEYWORD_CASE" value="0" />
-      <option name="TYPE_CASE" value="3" />
+    <MSSQLCodeStyleSettings version="6">
+      <option name="USE_GENERAL_STYLE" value="false" />
       <option name="IDENTIFIER_CASE" value="1" />
+      <option name="TYPE_CASE" value="3" />
+      <option name="CUSTOM_TYPE_CASE" value="3" />
+      <option name="ALIAS_CASE" value="4" />
       <option name="QUOTE_IDENTIFIER" value="1" />
       <option name="QUERY_IN_ONE_STRING" value="1" />
       <option name="QUERY_ALIGN_LINE_COMMENTS" value="false" />
@@ -240,11 +245,12 @@
       <option name="INDEX_NAME_TEMPLATE" value="{table}_{columns}_{unique?uk:i}" />
       <option name="FOREIGN_KEY_NAME_TEMPLATE" value="{table}_{columns}_fk" />
     </MSSQLCodeStyleSettings>
-    <MySQLCodeStyleSettings version="2">
-      <option name="ALIAS_CASE" value="4" />
-      <option name="KEYWORD_CASE" value="0" />
-      <option name="TYPE_CASE" value="3" />
+    <MySQLCodeStyleSettings version="6">
+      <option name="USE_GENERAL_STYLE" value="false" />
       <option name="IDENTIFIER_CASE" value="1" />
+      <option name="TYPE_CASE" value="3" />
+      <option name="CUSTOM_TYPE_CASE" value="3" />
+      <option name="ALIAS_CASE" value="4" />
       <option name="QUOTE_IDENTIFIER" value="1" />
       <option name="QUERY_IN_ONE_STRING" value="1" />
       <option name="QUERY_ALIGN_LINE_COMMENTS" value="false" />
@@ -286,11 +292,12 @@
       <option name="INDEX_NAME_TEMPLATE" value="{table}_{columns}_{unique?uk:i}" />
       <option name="FOREIGN_KEY_NAME_TEMPLATE" value="{table}_{columns}_fk" />
     </MySQLCodeStyleSettings>
-    <OracleCodeStyleSettings version="2">
-      <option name="ALIAS_CASE" value="4" />
-      <option name="KEYWORD_CASE" value="0" />
-      <option name="TYPE_CASE" value="3" />
+    <OracleCodeStyleSettings version="6">
+      <option name="USE_GENERAL_STYLE" value="false" />
       <option name="IDENTIFIER_CASE" value="1" />
+      <option name="TYPE_CASE" value="3" />
+      <option name="CUSTOM_TYPE_CASE" value="3" />
+      <option name="ALIAS_CASE" value="4" />
       <option name="QUOTE_IDENTIFIER" value="1" />
       <option name="QUERY_IN_ONE_STRING" value="1" />
       <option name="QUERY_ALIGN_LINE_COMMENTS" value="false" />
@@ -335,11 +342,12 @@
       <option name="INDEX_NAME_TEMPLATE" value="{table}_{columns}_{unique?uk:i}" />
       <option name="FOREIGN_KEY_NAME_TEMPLATE" value="{table}_{columns}_fk" />
     </OracleCodeStyleSettings>
-    <PostgresCodeStyleSettings version="2">
-      <option name="ALIAS_CASE" value="4" />
-      <option name="KEYWORD_CASE" value="0" />
-      <option name="TYPE_CASE" value="3" />
+    <PostgresCodeStyleSettings version="6">
+      <option name="USE_GENERAL_STYLE" value="false" />
       <option name="IDENTIFIER_CASE" value="1" />
+      <option name="TYPE_CASE" value="3" />
+      <option name="CUSTOM_TYPE_CASE" value="3" />
+      <option name="ALIAS_CASE" value="4" />
       <option name="QUOTE_IDENTIFIER" value="1" />
       <option name="QUERY_IN_ONE_STRING" value="1" />
       <option name="QUERY_ALIGN_LINE_COMMENTS" value="false" />
@@ -386,11 +394,12 @@
       <option name="INDEX_NAME_TEMPLATE" value="{table}_{columns}_{unique?uk:i}" />
       <option name="FOREIGN_KEY_NAME_TEMPLATE" value="{table}_{columns}_fk" />
     </PostgresCodeStyleSettings>
-    <SQLiteCodeStyleSettings version="2">
-      <option name="ALIAS_CASE" value="4" />
-      <option name="KEYWORD_CASE" value="0" />
-      <option name="TYPE_CASE" value="3" />
+    <SQLiteCodeStyleSettings version="6">
+      <option name="USE_GENERAL_STYLE" value="false" />
       <option name="IDENTIFIER_CASE" value="1" />
+      <option name="TYPE_CASE" value="3" />
+      <option name="CUSTOM_TYPE_CASE" value="3" />
+      <option name="ALIAS_CASE" value="4" />
       <option name="QUOTE_IDENTIFIER" value="1" />
       <option name="QUERY_IN_ONE_STRING" value="1" />
       <option name="QUERY_ALIGN_LINE_COMMENTS" value="false" />
@@ -429,11 +438,11 @@
       <option name="INDEX_NAME_TEMPLATE" value="{table}_{columns}_{unique?uk:i}" />
       <option name="FOREIGN_KEY_NAME_TEMPLATE" value="{table}_{columns}_fk" />
     </SQLiteCodeStyleSettings>
-    <SqlCodeStyleSettings version="2">
-      <option name="ALIAS_CASE" value="4" />
-      <option name="KEYWORD_CASE" value="0" />
-      <option name="TYPE_CASE" value="3" />
+    <SqlCodeStyleSettings version="6">
       <option name="IDENTIFIER_CASE" value="1" />
+      <option name="TYPE_CASE" value="3" />
+      <option name="CUSTOM_TYPE_CASE" value="3" />
+      <option name="ALIAS_CASE" value="4" />
       <option name="QUOTE_IDENTIFIER" value="1" />
       <option name="QUERY_IN_ONE_STRING" value="1" />
       <option name="QUERY_ALIGN_LINE_COMMENTS" value="false" />
@@ -492,11 +501,12 @@
       <option name="NEW_LINE_BEFORE_QUERY_INSIDE_DML" value="true" />
       <option name="INDENT_JOIN" value="false" />
     </SqlCodeStyleSettings>
-    <SybaseCodeStyleSettings version="2">
-      <option name="ALIAS_CASE" value="4" />
-      <option name="KEYWORD_CASE" value="0" />
-      <option name="TYPE_CASE" value="3" />
+    <SybaseCodeStyleSettings version="6">
+      <option name="USE_GENERAL_STYLE" value="false" />
       <option name="IDENTIFIER_CASE" value="1" />
+      <option name="TYPE_CASE" value="3" />
+      <option name="CUSTOM_TYPE_CASE" value="3" />
+      <option name="ALIAS_CASE" value="4" />
       <option name="QUOTE_IDENTIFIER" value="1" />
       <option name="QUERY_IN_ONE_STRING" value="1" />
       <option name="QUERY_ALIGN_LINE_COMMENTS" value="false" />
