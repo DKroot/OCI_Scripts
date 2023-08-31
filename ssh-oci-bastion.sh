@@ -2,7 +2,7 @@
 set -e
 set -o pipefail
 
-readonly VER=2.1.6
+readonly VER=2.1.7
 
 # Remove the longest `*/` prefix
 readonly SCRIPT_NAME_WITH_EXT="${0##*/}"
@@ -50,7 +50,7 @@ ENVIRONMENT
       * \`OCI_INSTANCE_OCID\`, e.g., \`ocid1.instance.oc1.iad.xx\`
       * \`OCI_BASTION_OCID\`, e.g., \`ocid1.bastion.oc1.iad.xx\`
       * For \`host_user\` SSH sessions only:
-        * \`OCI_INSTANCE\`, Internal FQDN or Private IP e.g., \`kharkiv.subxxx.main.oraclevcn.com\`
+        * \`OCI_INSTANCE\`, Internal FQDN or Private IP e.g., \`host.example.com\`
 
     * One of the following SSH public keys in \`~/.ssh/\`: \`id_rsa.pub\`, \`id_dsa.pub\`, \`id_ecdsa.pub\`,
       \`id_ed25519.pub\`, or \`id_xmss.pub\`. If there are multiple keys the first one found in this order will be used.
@@ -78,10 +78,9 @@ while getopts np:o:h OPT; do
     ;;
   p)
     port="$OPTARG"
-    #ports+=("$OPTARG")
     ;;
   o)
-    readonly PROFILE_OPT="--profile $OPTARG"
+    readonly PROFILE_OPT=(--profile "$OPTARG")
     ;;
   *) # -h or `?`: an unknown option
     usage
@@ -149,21 +148,17 @@ if [[ $port ]]; then
   # `--wait-interval-seconds`: state check interval (defaults to 30 seconds).
   # `--ssh-public-key-file` is required
   # `--target-private-ip` "${OCI_INSTANCE}"
-  # shellcheck disable=SC2086 # $PROFILE_OPT is a two-word CLI option
-  session_ocid=$(
-    time (# `time` prints to stderr so it does not interfere with the pipe
-      oci bastion session create-port-forwarding $PROFILE_OPT --bastion-id "$OCI_BASTION_OCID" \
-        --target-resource-id "$OCI_INSTANCE_OCID" --target-port "$port" --session-ttl $MAX_TTL \
-        --ssh-public-key-file $SSH_PUB_KEY --wait-for-state SUCCEEDED --wait-for-state FAILED \
-        --wait-interval-seconds $CHECK_INTERVAL_SEC \
-        | jq --raw-output '.data.resources[0].identifier'
-      printf "It took:" >&2
-    )
+  time session_ocid=$(
+    oci bastion session create-port-forwarding "${PROFILE_OPT[@]}" --bastion-id "$OCI_BASTION_OCID" \
+      --target-resource-id "$OCI_INSTANCE_OCID" --target-port "$port" --session-ttl $MAX_TTL \
+      --ssh-public-key-file $SSH_PUB_KEY --wait-for-state SUCCEEDED --wait-for-state FAILED \
+      --wait-interval-seconds $CHECK_INTERVAL_SEC \
+      | jq --raw-output '.data.resources[0].identifier'
+    printf "It took:" >&2
   )
   echo "Created the bastion port forwarding session: $session_ocid"
 
-  # shellcheck disable=SC2086 # $PROFILE_OPT is a two-word CLI option
-  ssh_command=$(oci bastion session get $PROFILE_OPT --session-id "$session_ocid" \
+  ssh_command=$(oci bastion session get "${PROFILE_OPT[@]}" --session-id "$session_ocid" \
     | jq --raw-output '.data["ssh-metadata"].command')
   # Result: `ssh -i <privateKey> -N -L <localPort>:{HOST_IP}:5432 -p 22 ocid1.bastionsession.xx@yy.oraclecloud.com`
   # Remove the placeholder
@@ -188,21 +183,17 @@ if [[ $HOST_USER ]]; then
   # `--session-ttl`: session duration in seconds (defaults to 30 minutes, maximum is 3 hours).
   # `--wait-interval-seconds`: state check interval (defaults to 30 seconds).
   # `--ssh-public-key-file` is required
-  # shellcheck disable=SC2086 # $PROFILE_OPT is a two-word CLI option
-  session_ocid=$(
-    time (# `time` prints to stderr so it does not interfere with the pipe
-      oci bastion session create-managed-ssh $PROFILE_OPT --bastion-id "$OCI_BASTION_OCID" \
-        --target-resource-id "$OCI_INSTANCE_OCID" --target-os-username "$HOST_USER" --session-ttl $MAX_TTL \
-        --ssh-public-key-file $SSH_PUB_KEY --wait-for-state SUCCEEDED --wait-for-state FAILED \
-        --wait-interval-seconds $CHECK_INTERVAL_SEC \
-        | jq --raw-output '.data.resources[0].identifier'
-      printf "It took:" >&2
-    )
+  time session_ocid=$(
+    oci bastion session create-managed-ssh "${PROFILE_OPT[@]}" --bastion-id "$OCI_BASTION_OCID" \
+      --target-resource-id "$OCI_INSTANCE_OCID" --target-os-username "$HOST_USER" --session-ttl $MAX_TTL \
+      --ssh-public-key-file $SSH_PUB_KEY --wait-for-state SUCCEEDED --wait-for-state FAILED \
+      --wait-interval-seconds $CHECK_INTERVAL_SEC \
+      | jq --raw-output '.data.resources[0].identifier'
+    printf "It took:" >&2
   )
   echo "Created the bastion session: $session_ocid"
 
-  # shellcheck disable=SC2086 # $PROFILE_OPT is a two-word CLI option
-  ssh_command=$(oci bastion session get $PROFILE_OPT --session-id "$session_ocid" \
+  ssh_command=$(oci bastion session get "${PROFILE_OPT[@]}" --session-id "$session_ocid" \
     | jq --raw-output '.data["ssh-metadata"].command')
   # Result: `ssh -i <privateKey> -o ProxyCommand=\"ssh -i <privateKey> -W %h:%p -p 22
   #   ocid1.bastionsession.xx@yy.oraclecloud.com\" -p 22 {HOST_USER}@{HOST_IP}`
