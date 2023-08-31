@@ -153,7 +153,7 @@ if [[ $port ]]; then
       --target-resource-id "$OCI_INSTANCE_OCID" --target-port "$port" --session-ttl $MAX_TTL \
       --ssh-public-key-file $SSH_PUB_KEY --wait-for-state SUCCEEDED --wait-for-state FAILED \
       --wait-interval-seconds $CHECK_INTERVAL_SEC \
-      | jq --raw-output '.data.resources[0].identifier'
+      | jq --raw-output '.data.resources[0].identifier' &&
     printf "It took:" >&2
   )
   echo "Created the bastion port forwarding session: $session_ocid"
@@ -188,7 +188,7 @@ if [[ $HOST_USER ]]; then
       --target-resource-id "$OCI_INSTANCE_OCID" --target-os-username "$HOST_USER" --session-ttl $MAX_TTL \
       --ssh-public-key-file $SSH_PUB_KEY --wait-for-state SUCCEEDED --wait-for-state FAILED \
       --wait-interval-seconds $CHECK_INTERVAL_SEC \
-      | jq --raw-output '.data.resources[0].identifier'
+      | jq --raw-output '.data.resources[0].identifier' &&
     printf "It took:" >&2
   )
   echo "Created the bastion session: $session_ocid"
