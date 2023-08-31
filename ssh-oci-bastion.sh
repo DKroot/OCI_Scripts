@@ -174,7 +174,7 @@ if [[ $port ]]; then
   set -x
   # This only works assuming there are no internal quotes in the command
   $ssh_command
-  set +x
+  #set +x
   exit
 fi
 
@@ -235,5 +235,5 @@ HEREDOC
   echo -e "\n[$(date +'%T %Z')] SSH to the target instance via a jump host"
   set -x
   ssh "${HOST_USER}@${OCI_INSTANCE}"
-  set +x
+  #set +x
 fi
